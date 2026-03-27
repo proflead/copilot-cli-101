@@ -1,6 +1,7 @@
 import expenseManager from './expense.js';
 import categoryManager from './category.js';
 import budgetManager from './budget.js';
+import incomeManager from './income.js';
 import notifications from './notifications.js';
 import dateUtils from './utils/dateUtils.js';
 
@@ -34,6 +35,7 @@ class ExpenseTrackerApp {
         this.setupBudgetForm();
         this.setupFilters();
         this.setupExport();
+        this.setupPredictions();
         this.populateCategoryDropdowns();
         this.render();
         
@@ -80,6 +82,9 @@ class ExpenseTrackerApp {
                 break;
             case 'reports':
                 this.renderReports();
+                break;
+            case 'predictions':
+                this.renderPredictions();
                 break;
         }
     }
@@ -788,6 +793,287 @@ class ExpenseTrackerApp {
                 notifications.warning(alert.message, 5000);
             }
         });
+    }
+
+    // Predictions
+    setupPredictions() {
+        const saveIncomeBtn = document.getElementById('save-income-btn');
+        if (saveIncomeBtn) {
+            saveIncomeBtn.addEventListener('click', () => {
+                this.saveMonthlyIncome();
+            });
+        }
+    }
+
+    saveMonthlyIncome() {
+        const input = document.getElementById('monthly-income');
+        const amount = parseFloat(input.value);
+
+        if (isNaN(amount) || amount < 0) {
+            notifications.error('Please enter a valid income amount (0 or greater)');
+            return;
+        }
+
+        const now = new Date();
+        const result = incomeManager.set({
+            amount,
+            month: now.getMonth(),
+            year: now.getFullYear(),
+            source: 'Monthly Income'
+        });
+
+        if (result.success) {
+            notifications.success('Monthly income saved!');
+            this.renderPredictions();
+        } else {
+            notifications.error(result.errors.join(', '));
+        }
+    }
+
+    // Build historical monthly data (last N months)
+    getHistoricalMonthlyData(monthsBack = 6) {
+        const now = new Date();
+        const data = [];
+
+        for (let i = monthsBack - 1; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const expenses = expenseManager.getByMonth(year, month);
+            const total = expenseManager.getTotalSpending(expenses);
+            const income = incomeManager.getMonthlyAmount(month, year);
+            const label = dateUtils.getMonthName(month, 'short') + ' ' + year;
+            data.push({ year, month, total, income, label, isPredicted: false });
+        }
+
+        return data;
+    }
+
+    // Linear regression prediction for future months
+    predictFutureMonths(historicalData, monthsAhead = 3) {
+        const n = historicalData.length;
+        if (n === 0) return [];
+
+        const expenseTotals = historicalData.map(d => d.total);
+        const x = expenseTotals.map((_, i) => i);
+        const sumX = x.reduce((a, b) => a + b, 0);
+        const sumY = expenseTotals.reduce((a, b) => a + b, 0);
+        const sumXY = x.reduce((s, xi, i) => s + xi * expenseTotals[i], 0);
+        const sumXX = x.reduce((s, xi) => s + xi * xi, 0);
+
+        const denom = n * sumXX - sumX * sumX;
+        let slope = 0;
+        let intercept = sumY / n;
+
+        if (denom !== 0) {
+            slope = (n * sumXY - sumX * sumY) / denom;
+            intercept = (sumY - slope * sumX) / n;
+        }
+
+        const now = new Date();
+        const latestIncome = incomeManager.getLatestAmount();
+        const predictions = [];
+
+        for (let i = 0; i < monthsAhead; i++) {
+            const date = new Date(now.getFullYear(), now.getMonth() + 1 + i, 1);
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const predictedExpense = Math.max(0, intercept + slope * (n + i));
+            // Use month-specific income if available, otherwise use most recent
+            const income = incomeManager.getMonthlyAmount(month, year) || latestIncome;
+            const label = dateUtils.getMonthName(month, 'short') + ' ' + year;
+
+            predictions.push({
+                year,
+                month,
+                total: Math.round(predictedExpense * 100) / 100,
+                income,
+                label,
+                isPredicted: true
+            });
+        }
+
+        return predictions;
+    }
+
+    renderPredictions() {
+        const historical = this.getHistoricalMonthlyData(6);
+        const predicted = this.predictFutureMonths(historical, 3);
+        const allData = [...historical, ...predicted];
+        const settings = { currencySymbol: '$' };
+
+        // Populate income input with current month's income
+        const currentIncome = incomeManager.getMonthlyAmount();
+        const incomeInput = document.getElementById('monthly-income');
+        if (incomeInput && currentIncome > 0) {
+            incomeInput.value = currentIncome.toFixed(2);
+        }
+
+        // Render summary cards for predicted months
+        const summaryContainer = document.getElementById('prediction-stats');
+        if (summaryContainer) {
+            if (predicted.length === 0) {
+                summaryContainer.innerHTML = '';
+            } else {
+                summaryContainer.innerHTML = predicted.map(p => {
+                    const surplus = p.income - p.total;
+                    const surplusClass = surplus >= 0 ? 'surplus' : 'deficit';
+                    const surplusLabel = surplus >= 0 ? 'Projected Surplus' : 'Projected Deficit';
+                    return `
+                        <div class="prediction-stat-card">
+                            <div class="prediction-month">${escapeHtml(p.label)} <span class="predicted-badge">Forecast</span></div>
+                            <div class="prediction-amounts">
+                                <div class="prediction-amount-item">
+                                    <span class="pred-label">Income</span>
+                                    <span class="pred-value income-value">${settings.currencySymbol}${p.income.toFixed(2)}</span>
+                                </div>
+                                <div class="prediction-amount-item">
+                                    <span class="pred-label">Est. Expenses</span>
+                                    <span class="pred-value expense-value">${settings.currencySymbol}${p.total.toFixed(2)}</span>
+                                </div>
+                                <div class="prediction-amount-item">
+                                    <span class="pred-label">${surplusLabel}</span>
+                                    <span class="pred-value ${surplusClass}">${settings.currencySymbol}${Math.abs(surplus).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Render prediction chart
+        this.renderPredictionChart(allData);
+
+        // Render forecast details table
+        this.renderPredictionDetails(allData, settings);
+    }
+
+    renderPredictionChart(allData) {
+        const canvas = document.getElementById('prediction-chart');
+        if (!canvas) return;
+
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded. Skipping chart rendering.');
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        if (this.charts['prediction-chart']) {
+            this.charts['prediction-chart'].destroy();
+        }
+
+        const labels = allData.map(d => d.label);
+        const expenseData = allData.map(d => d.total);
+        const incomeData = allData.map(d => d.income);
+
+        // Split expense data: historical (solid) vs predicted (dashed via pointStyle)
+        const expenseColors = allData.map(d =>
+            d.isPredicted ? 'rgba(244, 67, 54, 0.4)' : 'rgba(244, 67, 54, 0.8)'
+        );
+        const incomeBorderColors = allData.map(d =>
+            d.isPredicted ? 'rgba(76, 175, 80, 0.4)' : 'rgba(76, 175, 80, 0.9)'
+        );
+
+        this.charts['prediction-chart'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Expenses',
+                        data: expenseData,
+                        backgroundColor: expenseColors,
+                        borderColor: expenseColors,
+                        borderWidth: 1,
+                        order: 2
+                    },
+                    {
+                        label: 'Income',
+                        data: incomeData,
+                        type: 'line',
+                        borderColor: 'rgba(76, 175, 80, 0.9)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        pointBackgroundColor: incomeBorderColors,
+                        pointRadius: 5,
+                        tension: 0.3,
+                        fill: false,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: (tooltipItems) => {
+                                const idx = tooltipItems[0]?.dataIndex;
+                                if (idx !== undefined && allData[idx]?.isPredicted) {
+                                    return ['(Forecasted)'];
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => `$${value.toFixed(0)}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    renderPredictionDetails(allData, settings) {
+        const container = document.getElementById('prediction-details');
+        if (!container) return;
+
+        if (allData.length === 0) {
+            container.innerHTML = '<p class="empty-state">No data available. Add expenses to see predictions.</p>';
+            return;
+        }
+
+        const rows = allData.map(d => {
+            const surplus = d.income - d.total;
+            const surplusClass = surplus >= 0 ? 'surplus' : 'deficit';
+            const rowClass = d.isPredicted ? 'predicted-row' : '';
+            return `
+                <tr class="${rowClass}">
+                    <td>${escapeHtml(d.label)}${d.isPredicted ? ' <span class="predicted-badge">Forecast</span>' : ''}</td>
+                    <td class="income-value">${settings.currencySymbol}${d.income.toFixed(2)}</td>
+                    <td class="expense-value">${settings.currencySymbol}${d.total.toFixed(2)}</td>
+                    <td class="${surplusClass}">${surplus >= 0 ? '+' : ''}${settings.currencySymbol}${surplus.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        container.innerHTML = `
+            <table class="prediction-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Income</th>
+                        <th>Expenses</th>
+                        <th>Surplus / Deficit</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
     }
 }
 
