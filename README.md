@@ -1,63 +1,153 @@
 # Copilot CLI Tutorial — Example Repository
 
-This repository is organized as a learning resource for GitHub Copilot CLI. It contains an example client-side web app in the `example/` directory and comprehensive documentation and instructions for developers who want to learn and use the Copilot CLI.
+This repository is a hands-on learning resource for GitHub Copilot CLI. It includes an example client-side web app in the `example/` directory and curated lessons, exercises, and reference material to help developers learn how to use Copilot CLI effectively and safely.
 
-Contents
-- example/ — The example expense-tracker web app (vanilla JS, no build step)
-- COPILOT_CLI_HELP.md — Additional quick notes
-- PROJECT_SUMMARY.md — Project summary and learning objectives
-- share.md — Sharing guidelines
+Repository layout
+- example/ — Example expense-tracker web app (vanilla JS, no build step). Read: `example/DOCUMENTATION.md`.
+- COPILOT_CLI_HELP.md — Quick reference for common slash commands and shortcuts.
+- PROJECT_SUMMARY.md — Goals and learning objectives for this tutorial.
+- share.md — How to share exercises and learning artifacts.
 
 Why this repo?
-This repository is crafted to teach developers how to use Copilot CLI effectively: installing, authenticating, running slash commands, using LSPs, integrating with git, and best practices for safe agent use.
+This repo is designed to be the best starting point for developers who want to learn Copilot CLI: installation across OSes, authentication, slash commands, model selection, LSP integration, safe workspace permissions, example-driven exercises, and Git + PR workflows using the agent.
 
 Quick links
-- Example app: ./example/index.html (open directly or serve via a local static server)
-- App documentation: ./example/DOCUMENTATION.md
+- Example app: ./example/index.html (open directly or serve via a static server)
+- App docs: ./example/DOCUMENTATION.md
+- Quick help: ./COPILOT_CLI_HELP.md
 
 Prerequisites
-- Git (latest stable)
-- A GitHub account with Copilot access (some features require a subscription)
+- Git (2.25+ recommended)
+- Node (optional, for some exercises)
+- A GitHub account with Copilot access (some features require a subscription or organizational allowance)
 
-Installing Copilot CLI
-This section summarizes official installation options. Refer to the official docs for updates.
+1) Installing Copilot CLI
 
-macOS / Linux (recommended)
-- Homebrew: `brew install copilot-cli`
-- Install script: `curl -fsSL https://gh.io/copilot-install | bash`
-- npm: `npm install -g @github/copilot`
+macOS
+- Homebrew (recommended):
+  - brew install copilot-cli
+- Install script (single-line):
+  - /bin/bash -c "$(curl -fsSL https://gh.io/copilot-install)"
+- npm (alternative): npm install -g @github/copilot
+
+Linux
+- Homebrew on Linux: brew install copilot-cli
+- Install script: curl -fsSL https://gh.io/copilot-install | bash
+- npm: npm install -g @github/copilot
 
 Windows
-- WinGet: `winget install GitHub.Copilot`
-- npm: `npm install -g @github/copilot`
+- WinGet: winget install GitHub.Copilot
+- Scoop/Chocolatey (if available) or npm: npm install -g @github/copilot
 
-Authentication
-- Run `copilot` and use `/login` to authenticate via browser flow.
-- Alternatively, set a PAT with the "Copilot Requests" permission in `GH_TOKEN` or `GITHUB_TOKEN`.
+Notes
+- Use the `VERSION` and `PREFIX` environment variables with the install script to pin versions or install to custom locations.
+- Homebrew or OS package managers keep things easy to update.
 
-Core concepts developers should know
-- Slash commands: typed with a leading `/` in the CLI to perform actions (e.g., `/login`, `/model`, `/pr`, `/plan`). They drive agent behavior and integrations.
-- Models: Copilot CLI supports multiple models; change with `/model`.
-- Modes: Interactive and Plan modes; cycle via Shift+Tab to enable the agent to run multi-step tasks.
-- Permissions & allowed directories: Use `/add-dir` and `/allow-all` carefully; prefer least privilege.
-- LSP integration: Install language servers separately and configure via `~/.copilot/lsp-config.json` or `.github/lsp.json`.
-- Experimental features: Enable with `--experimental` or `/experimental` and expect change.
+2) Authentication
 
-Using this repo
-1. Open the example app: `cd example && python3 -m http.server 8080` then open http://localhost:8080
-2. Explore `example/DOCUMENTATION.md` for app architecture and developer guidance.
-3. Launch Copilot CLI in this repo: `copilot` and try `/init`, `/plan`, `/delegate`, `/diff`, and `/pr` to see agent integration with git and the workspace.
+- First run: execute `copilot`. If not authenticated, run the slash command `/login` inside the CLI and follow the browser flow.
+- PAT alternative: Generate a fine-grained Personal Access Token (PAT) with the "Copilot Requests" permission and set it in your environment: `export GH_TOKEN=your_token_here` (macOS/Linux) or set `GITHUB_TOKEN`/`GH_TOKEN` in Windows environment variables.
+- Organization-managed access: ensure your org admin has enabled Copilot for your account.
 
-Security & safety
-- Review planned changes before applying; the agent will prompt for approval.
-- Do not give Copilot CLI access to directories with secrets unless necessary; use `/add-dir` selectively.
+3) Core concepts & UX
 
-Contributing
-- Update the example app, documentation, or add new learning exercises.
-- Open issues for improvements or doc corrections.
+Slash commands
+- Commands start with `/` and change agent behavior or trigger integrations. Examples:
+  - /login, /logout — authentication
+  - /model — switch AI model
+  - /plan — create an implementation plan
+  - /delegate — create PRs from agent work
+  - /pr — create or manage pull requests
+  - /diff, /review — inspect code changes or request review assistance
+  - /lsp — manage language server config
+  - /experimental — toggle experimental features
+
+Modes & Shortcuts
+- Shift+Tab — cycle modes (Interactive, Plan, Autopilot)
+- Ctrl+S — run command while keeping input
+- Ctrl+G — edit prompt in external editor
+- ! — run local shell commands from inside Copilot (use cautiously)
+- Esc / Ctrl+C — cancel or clear input
+
+Models & Limits
+- Use `/model` to pick a model (Claude, GPT, etc.). Different models may give different behavior and costs.
+- Each Copilot CLI request may consume quota depending on your plan. Monitor usage with `/usage`.
+
+4) Language Server Protocol (LSP) integration
+
+Why LSP
+- LSP servers provide richer local code intelligence: go-to-definition, diagnostics, hover, and completions that Copilot CLI can surface.
+
+Installing LSP servers
+- TypeScript: npm install -g typescript-language-server typescript
+- Python: pip install 'python-lsp-server[all]'
+- Rust: rust-analyzer (install via rustup or package manager)
+
+Configuring LSP
+- User-level: edit `~/.copilot/lsp-config.json`
+- Repository-level: create `.github/lsp.json`
+
+Example lsp-config.json
+{
+  "lspServers": {
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "fileExtensions": { ".ts": "typescript", ".tsx": "typescript" }
+    }
+  }
+}
+
+5) Hands-on exercises (recommended order)
+- Exercise 1: Run Copilot and authenticate (`copilot`, then `/login`).
+- Exercise 2: Open this repo and try `/plan "Add unit tests for storage manager"` to generate a plan.
+- Exercise 3: Use `/delegate` after asking the agent to implement the plan; inspect diffs with `/diff` before applying.
+- Exercise 4: Configure an LSP server for JS and ask Copilot CLI to show diagnostics with `/lsp`.
+- Exercise 5: Create a PR using `/pr` and iterate on review comments using `/review`.
+
+Each exercise should be done in a dedicated branch. Use `git status` and `git log` to inspect changes created by the agent.
+
+6) Example workflows & slash-command recipes
+
+Create a feature end-to-end
+1. copilot
+2. /plan "Add export to CSV feature to reports module" (review plan)
+3. /delegate apply —agent to implement and open a branch (review diffs with `/diff`)
+4. Run tests locally (if present) and iterate
+5. /pr create to open a pull request
+
+Code review assistant
+- After making changes locally, run `/review` to get suggestions for improvements, security issues, and test coverage gaps.
+
+7) Security & safety best practices
+- Least privilege: only give the agent access to directories you want it to modify (`/add-dir`), avoid /allow-all.
+- Secrets: do not expose API keys, tokens, or private credentials in the workspace you allow the agent to access.
+- Review everything: the agent will propose changes but always inspect diffs before applying.
+- Use feature branches for agent-generated changes and require human approval before merging.
+
+8) Troubleshooting
+- Can't authenticate: re-run `/login` and check browser pop-up or PAT env var.
+- Agent can't access files: use `/add-dir path/to/dir` to grant access.
+- LSP not working: verify the server is installed and `~/.copilot/lsp-config.json` is valid JSON.
+- CLI crashes: run `copilot --version` and check for updates with `/update`.
+
+9) Exercises and guided curriculum (expandable)
+- Beginner: Setup & basic slash commands
+- Intermediate: Planning, delegating tasks, and using LSP
+- Advanced: Fleet mode, background tasks, and automating PR workflows
+
+10) Contributing to this tutorial
+- Add new exercises in `example/exercises/` (use numbered folders and README.md per exercise)
+- Improve docs in COPILOT_CLI_HELP.md
+- Open issues or PRs for corrections and suggestions
+
+License & attribution
+- This repo is a learning resource. Attribution: includes Copilot CLI guidance summarized from official docs.
+
+Further reading
+- Official docs: https://docs.github.com/copilot
+- Copilot CLI help inside the tool: run `copilot` then `/help`
 
 ---
 
-For the authoritative Copilot CLI docs, see: https://docs.github.com/copilot
-
-README updated to be a Copilot CLI tutorial and example guide.
+This README was expanded to provide a full Copilot CLI tutorial, platform install steps, walkthroughs, slash-command recipes, LSP setup, exercises, and safety guidance.
