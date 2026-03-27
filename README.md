@@ -1,250 +1,153 @@
-# 💰 Expense Tracker
+# Copilot CLI Tutorial — Example Repository
 
-A simple, powerful, and fully client-side expense tracking web application built with vanilla JavaScript, HTML, and CSS. Track your spending, manage budgets, and visualize your financial data with beautiful charts and reports.
+This repository is a hands-on learning resource for GitHub Copilot CLI. It includes an example client-side web app in the `example/` directory and curated lessons, exercises, and reference material to help developers learn how to use Copilot CLI effectively and safely.
 
-![Expense Tracker](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)
+Repository layout
+- example/ — Example expense-tracker web app (vanilla JS, no build step). Read: `example/DOCUMENTATION.md`.
+- COPILOT_CLI_HELP.md — Quick reference for common slash commands and shortcuts.
+- PROJECT_SUMMARY.md — Goals and learning objectives for this tutorial.
+- share.md — How to share exercises and learning artifacts.
 
-## ✨ Features
+Why this repo?
+This repo is designed to be the best starting point for developers who want to learn Copilot CLI: installation across OSes, authentication, slash commands, model selection, LSP integration, safe workspace permissions, example-driven exercises, and Git + PR workflows using the agent.
 
-- **💳 Expense Management**
-  - Add, edit, and delete expenses with ease
-  - Categorize expenses (Food, Transport, Entertainment, Healthcare, etc.)
-  - Add detailed notes to each expense
-  - Date validation (no future dates allowed)
+Quick links
+- Example app: ./example/index.html (open directly or serve via a static server)
+- App docs: ./example/DOCUMENTATION.md
+- Quick help: ./COPILOT_CLI_HELP.md
 
-- **🎯 Budget Management**
-  - Set monthly budgets per category or overall
-  - Visual progress bars showing budget usage
-  - Real-time alerts when approaching or exceeding budgets
-  - Track spending against budgets
+Prerequisites
+- Git (2.25+ recommended)
+- Node (optional, for some exercises)
+- A GitHub account with Copilot access (some features require a subscription or organizational allowance)
 
-- **📊 Dashboard**
-  - Real-time statistics (total expenses, transactions, daily average)
-  - Interactive pie chart showing expenses by category
-  - Spending trend line chart
-  - Budget status overview
+1) Installing Copilot CLI
 
-- **🔍 Advanced Filtering & Search**
-  - Filter by date range
-  - Filter by category
-  - Text search across descriptions and notes
-  - Clear all filters with one click
+macOS
+- Homebrew (recommended):
+  - brew install copilot-cli
+- Install script (single-line):
+  - /bin/bash -c "$(curl -fsSL https://gh.io/copilot-install)"
+- npm (alternative): npm install -g @github/copilot
 
-- **📈 Reports & Analytics**
-  - Custom date range reports
-  - Category breakdown with percentages
-  - Monthly comparison bar charts
-  - Spending trends and patterns
+Linux
+- Homebrew on Linux: brew install copilot-cli
+- Install script: curl -fsSL https://gh.io/copilot-install | bash
+- npm: npm install -g @github/copilot
 
-- **💾 Data Export**
-  - Export to CSV (for spreadsheets)
-  - Export to JSON (for backup/migration)
-  - Export filtered results
+Windows
+- WinGet: winget install GitHub.Copilot
+- Scoop/Chocolatey (if available) or npm: npm install -g @github/copilot
 
-- **📱 Responsive Design**
-  - Works seamlessly on desktop, tablet, and mobile
-  - Touch-friendly interface
-  - Optimized for all screen sizes
+Notes
+- Use the `VERSION` and `PREFIX` environment variables with the install script to pin versions or install to custom locations.
+- Homebrew or OS package managers keep things easy to update.
 
-- **🔔 Smart Notifications**
-  - Toast notifications for all actions
-  - Budget alerts and warnings
-  - Success/error feedback
+2) Authentication
 
-- **💪 Privacy-First**
-  - All data stored locally in your browser
-  - No backend or server required
-  - Your data never leaves your device
+- First run: execute `copilot`. If not authenticated, run the slash command `/login` inside the CLI and follow the browser flow.
+- PAT alternative: Generate a fine-grained Personal Access Token (PAT) with the "Copilot Requests" permission and set it in your environment: `export GH_TOKEN=your_token_here` (macOS/Linux) or set `GITHUB_TOKEN`/`GH_TOKEN` in Windows environment variables.
+- Organization-managed access: ensure your org admin has enabled Copilot for your account.
 
-## 🚀 Quick Start
+3) Core concepts & UX
 
-### Option 1: Open Directly
-1. Download or clone this repository
-2. Open `index.html` in your web browser
-3. Start tracking your expenses!
+Slash commands
+- Commands start with `/` and change agent behavior or trigger integrations. Examples:
+  - /login, /logout — authentication
+  - /model — switch AI model
+  - /plan — create an implementation plan
+  - /delegate — create PRs from agent work
+  - /pr — create or manage pull requests
+  - /diff, /review — inspect code changes or request review assistance
+  - /lsp — manage language server config
+  - /experimental — toggle experimental features
 
-### Option 2: Use a Local Server
-```bash
-# Using Python
-python3 -m http.server 8080
+Modes & Shortcuts
+- Shift+Tab — cycle modes (Interactive, Plan, Autopilot)
+- Ctrl+S — run command while keeping input
+- Ctrl+G — edit prompt in external editor
+- ! — run local shell commands from inside Copilot (use cautiously)
+- Esc / Ctrl+C — cancel or clear input
 
-# Using Node.js
-npx http-server -p 8080
+Models & Limits
+- Use `/model` to pick a model (Claude, GPT, etc.). Different models may give different behavior and costs.
+- Each Copilot CLI request may consume quota depending on your plan. Monitor usage with `/usage`.
 
-# Then open http://localhost:8080 in your browser
-```
+4) Language Server Protocol (LSP) integration
 
-## 📖 How to Use
+Why LSP
+- LSP servers provide richer local code intelligence: go-to-definition, diagnostics, hover, and completions that Copilot CLI can surface.
 
-### Adding an Expense
-1. Navigate to the **Expenses** tab
-2. Click the **+ Add Expense** button
-3. Fill in the amount, date, category, and description
-4. Optionally add notes
-5. Click **Save Expense**
+Installing LSP servers
+- TypeScript: npm install -g typescript-language-server typescript
+- Python: pip install 'python-lsp-server[all]'
+- Rust: rust-analyzer (install via rustup or package manager)
 
-### Setting a Budget
-1. Navigate to the **Budget** tab
-2. Click **+ Set Budget**
-3. Select a category (or "Overall Budget")
-4. Enter the monthly budget amount
-5. Click **Save Budget**
+Configuring LSP
+- User-level: edit `~/.copilot/lsp-config.json`
+- Repository-level: create `.github/lsp.json`
 
-### Viewing Reports
-1. Navigate to the **Reports** tab
-2. Select a date range (defaults to current month)
-3. Click **Generate Report**
-4. View charts and category breakdowns
-
-### Filtering Expenses
-1. Go to the **Expenses** tab
-2. Use the search box to find specific expenses
-3. Filter by category using the dropdown
-4. Set date ranges to narrow results
-5. Click **Clear Filters** to reset
-
-### Exporting Data
-1. In the **Expenses** tab, apply any filters you want
-2. Click **Export CSV** or **Export JSON**
-3. The file will be downloaded to your device
-
-## 🛠️ Technical Details
-
-### Technologies Used
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with CSS Grid and Flexbox
-- **JavaScript (ES6+)** - Modular architecture with ES6 modules
-- **Chart.js** - Beautiful, responsive charts
-- **localStorage API** - Client-side data persistence
-
-### Browser Compatibility
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-### Data Storage
-All data is stored in your browser's localStorage:
-- **Storage capacity**: ~5-10MB (more than enough for years of expenses)
-- **Persistence**: Data persists until you clear browser data
-- **Privacy**: Data never leaves your device
-
-### File Structure
-```
-expense-tracker/
-├── index.html              # Main HTML file
-├── css/
-│   └── styles.css          # All styles
-├── js/
-│   ├── app.js              # Main application logic
-│   ├── storage.js          # localStorage manager
-│   ├── expense.js          # Expense management
-│   ├── category.js         # Category management
-│   ├── budget.js           # Budget management
-│   ├── notifications.js    # Toast notifications
-│   └── utils/
-│       └── dateUtils.js    # Date utility functions
-└── README.md               # This file
-```
-
-## 🎨 Customization
-
-### Adding Custom Categories
-Default categories are initialized automatically, but you can add more by modifying the `DEFAULT_CATEGORIES` array in `js/category.js`:
-
-```javascript
-const DEFAULT_CATEGORIES = [
-    { name: 'Your Category', icon: '🎯', color: '#FF6384' },
-    // ... add more categories
-];
-```
-
-### Changing Colors
-Modify CSS variables in `css/styles.css`:
-
-```css
-:root {
-    --primary-color: #4CAF50;
-    --secondary-color: #2196F3;
-    /* ... modify other colors */
+Example lsp-config.json
+{
+  "lspServers": {
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "fileExtensions": { ".ts": "typescript", ".tsx": "typescript" }
+    }
+  }
 }
-```
 
-## 💡 Tips & Best Practices
+5) Hands-on exercises (recommended order)
+- Exercise 1: Run Copilot and authenticate (`copilot`, then `/login`).
+- Exercise 2: Open this repo and try `/plan "Add unit tests for storage manager"` to generate a plan.
+- Exercise 3: Use `/delegate` after asking the agent to implement the plan; inspect diffs with `/diff` before applying.
+- Exercise 4: Configure an LSP server for JS and ask Copilot CLI to show diagnostics with `/lsp`.
+- Exercise 5: Create a PR using `/pr` and iterate on review comments using `/review`.
 
-1. **Regular Backups**: Export your data as JSON periodically for backup
-2. **Set Budgets**: Create budgets to help manage spending
-3. **Use Categories**: Properly categorize expenses for better insights
-4. **Add Notes**: Use the notes field for additional context
-5. **Check Reports**: Review monthly reports to understand spending patterns
+Each exercise should be done in a dedicated branch. Use `git status` and `git log` to inspect changes created by the agent.
 
-## 🔒 Privacy & Security
+6) Example workflows & slash-command recipes
 
-- ✅ No data sent to any server
-- ✅ No tracking or analytics
-- ✅ No external dependencies (except Chart.js CDN)
-- ✅ Works completely offline (after initial load)
-- ✅ Your data is yours alone
+Create a feature end-to-end
+1. copilot
+2. /plan "Add export to CSV feature to reports module" (review plan)
+3. /delegate apply —agent to implement and open a branch (review diffs with `/diff`)
+4. Run tests locally (if present) and iterate
+5. /pr create to open a pull request
 
-## 🐛 Troubleshooting
+Code review assistant
+- After making changes locally, run `/review` to get suggestions for improvements, security issues, and test coverage gaps.
 
-### Data Not Saving
-- Check if cookies/localStorage are enabled in your browser
-- Ensure you're not in private/incognito mode
-- Check available storage space
+7) Security & safety best practices
+- Least privilege: only give the agent access to directories you want it to modify (`/add-dir`), avoid /allow-all.
+- Secrets: do not expose API keys, tokens, or private credentials in the workspace you allow the agent to access.
+- Review everything: the agent will propose changes but always inspect diffs before applying.
+- Use feature branches for agent-generated changes and require human approval before merging.
 
-### Charts Not Showing
-- Ensure you have an internet connection (for Chart.js CDN)
-- Try refreshing the page
-- Check browser console for errors
+8) Troubleshooting
+- Can't authenticate: re-run `/login` and check browser pop-up or PAT env var.
+- Agent can't access files: use `/add-dir path/to/dir` to grant access.
+- LSP not working: verify the server is installed and `~/.copilot/lsp-config.json` is valid JSON.
+- CLI crashes: run `copilot --version` and check for updates with `/update`.
 
-### Performance Issues
-- If you have many expenses (1000+), consider archiving old data
-- Export old data and clear it from the app
-- Keep only recent expenses for better performance
+9) Exercises and guided curriculum (expandable)
+- Beginner: Setup & basic slash commands
+- Intermediate: Planning, delegating tasks, and using LSP
+- Advanced: Fleet mode, background tasks, and automating PR workflows
 
-## 📝 License
+10) Contributing to this tutorial
+- Add new exercises in `example/exercises/` (use numbered folders and README.md per exercise)
+- Improve docs in COPILOT_CLI_HELP.md
+- Open issues or PRs for corrections and suggestions
 
-This project is open source and available under the [MIT License](LICENSE).
+License & attribution
+- This repo is a learning resource. Attribution: includes Copilot CLI guidance summarized from official docs.
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-
-## 📧 Support
-
-If you have questions or need help, please open an issue in the repository.
-
-## 🌟 Future Enhancements
-
-Potential features for future versions:
-- Multiple currency support
-- Recurring expenses
-- Income tracking
-- Category icons customization
-- Dark mode
-- Data import from CSV
-- Cloud sync (optional)
-- Mobile app version
-
-## 📊 Screenshots
-
-### Dashboard
-The dashboard provides an at-a-glance view of your finances with real-time statistics and interactive charts.
-
-### Expense Management
-Easily add, edit, and delete expenses with a clean, intuitive interface.
-
-### Budget Tracking
-Set budgets and monitor your progress with visual indicators and alerts.
-
-### Reports
-Generate detailed reports with custom date ranges and beautiful visualizations.
+Further reading
+- Official docs: https://docs.github.com/copilot
+- Copilot CLI help inside the tool: run `copilot` then `/help`
 
 ---
 
-**Made with ❤️ using vanilla JavaScript**
-
-*No frameworks, no build tools, just clean code that works!*
+This README was expanded to provide a full Copilot CLI tutorial, platform install steps, walkthroughs, slash-command recipes, LSP setup, exercises, and safety guidance.
