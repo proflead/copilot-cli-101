@@ -4,6 +4,13 @@ import budgetManager from './budget.js';
 import notifications from './notifications.js';
 import dateUtils from './utils/dateUtils.js';
 
+// HTML sanitization helper
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Main Application Class
 class ExpenseTrackerApp {
     constructor() {
@@ -301,9 +308,21 @@ class ExpenseTrackerApp {
             e.notes || ''
         ]);
 
+        // CSV escape: double quotes and prevent formula injection
+        const escapeCsvCell = (cell) => {
+            const str = String(cell);
+            // Escape double quotes by doubling them
+            const escaped = str.replace(/"/g, '""');
+            // Prevent formula injection by prefixing with single quote if starts with =+-@
+            if (/^[=+\-@]/.test(escaped)) {
+                return `"'${escaped}"`;
+            }
+            return `"${escaped}"`;
+        };
+
         const csv = [
             headers.join(','),
-            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ...rows.map(row => row.map(escapeCsvCell).join(','))
         ].join('\n');
 
         this.downloadFile(csv, 'expenses.csv', 'text/csv');
@@ -413,6 +432,12 @@ class ExpenseTrackerApp {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
 
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded. Skipping chart rendering.');
+            return;
+        }
+
         const ctx = canvas.getContext('2d');
         const byCategory = expenseManager.getSpendingByCategory(expenses);
 
@@ -457,6 +482,12 @@ class ExpenseTrackerApp {
     renderTrendChart(canvasId, expenses) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
+
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded. Skipping chart rendering.');
+            return;
+        }
 
         const ctx = canvas.getContext('2d');
 
@@ -532,12 +563,12 @@ class ExpenseTrackerApp {
             return `
                 <tr>
                     <td>${dateUtils.formatDate(expense.date)}</td>
-                    <td>${icon} ${expense.category}</td>
-                    <td>${expense.description}</td>
+                    <td>${escapeHtml(icon)} ${escapeHtml(expense.category)}</td>
+                    <td>${escapeHtml(expense.description)}</td>
                     <td>${settings.currencySymbol}${parseFloat(expense.amount).toFixed(2)}</td>
                     <td>
-                        <button class="btn-icon btn-edit" data-id="${expense.id}" title="Edit">✏️</button>
-                        <button class="btn-icon btn-delete" data-id="${expense.id}" title="Delete">🗑️</button>
+                        <button class="btn-icon btn-edit" data-id="${escapeHtml(expense.id)}" title="Edit">✏️</button>
+                        <button class="btn-icon btn-delete" data-id="${escapeHtml(expense.id)}" title="Delete">🗑️</button>
                     </td>
                 </tr>
             `;
@@ -582,8 +613,8 @@ class ExpenseTrackerApp {
             return `
                 <div class="budget-card">
                     <div class="budget-header">
-                        <h3>${icon} ${category}</h3>
-                        <button class="btn-icon btn-delete" data-id="${budget.id}" title="Delete">🗑️</button>
+                        <h3>${escapeHtml(icon)} ${escapeHtml(category)}</h3>
+                        <button class="btn-icon btn-delete" data-id="${escapeHtml(budget.id)}" title="Delete">🗑️</button>
                     </div>
                     <div class="budget-amounts">
                         <div class="amount-item">
@@ -655,6 +686,12 @@ class ExpenseTrackerApp {
     renderMonthlyChart(expenses) {
         const canvas = document.getElementById('report-monthly-chart');
         if (!canvas) return;
+
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded. Skipping chart rendering.');
+            return;
+        }
 
         const ctx = canvas.getContext('2d');
 
@@ -730,11 +767,11 @@ class ExpenseTrackerApp {
             return `
                 <div class="category-breakdown-item">
                     <div class="category-info">
-                        <span class="category-name">${icon} ${category}</span>
+                        <span class="category-name">${escapeHtml(icon)} ${escapeHtml(category)}</span>
                         <span class="category-amount">${settings.currencySymbol}${amount.toFixed(2)}</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percentage}%; background-color: ${color}"></div>
+                        <div class="progress-fill" style="width: ${percentage}%; background-color: ${escapeHtml(color)}"></div>
                     </div>
                     <div class="category-percentage">${percentage.toFixed(1)}%</div>
                 </div>

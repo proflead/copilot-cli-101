@@ -34,11 +34,24 @@ class NotificationManager {
         toast.className = `toast toast-${type}`;
         
         const icon = this.getIcon(type);
-        toast.innerHTML = `
-            <span class="toast-icon">${icon}</span>
-            <span class="toast-message">${message}</span>
-            <button class="toast-close" aria-label="Close">&times;</button>
-        `;
+        
+        // Create elements safely to prevent XSS
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'toast-icon';
+        iconSpan.textContent = icon;
+        
+        const messageSpan = document.createElement('span');
+        messageSpan.className = 'toast-message';
+        messageSpan.textContent = message;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'toast-close';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.innerHTML = '&times;';
+        
+        toast.appendChild(iconSpan);
+        toast.appendChild(messageSpan);
+        toast.appendChild(closeBtn);
 
         this.container.appendChild(toast);
         this.notifications.push(toast);
@@ -47,7 +60,6 @@ class NotificationManager {
         setTimeout(() => toast.classList.add('show'), 10);
 
         // Close button handler
-        const closeBtn = toast.querySelector('.toast-close');
         closeBtn.addEventListener('click', () => this.dismiss(toast));
 
         // Auto dismiss
