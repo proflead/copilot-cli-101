@@ -695,7 +695,207 @@ body {
     color: var(--text-primary);
 }
 
-/* Responsive Design */
+/* Predictions Section */
+.income-setup-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+}
+
+.income-hint {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.income-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.income-form .form-group {
+    flex: 1;
+    min-width: 220px;
+    margin-bottom: 0;
+}
+
+.prediction-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.prediction-stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.prediction-stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.prediction-month {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.predicted-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(33, 150, 243, 0.12);
+    color: var(--secondary-color);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    border-radius: 12px;
+    padding: 0.15rem 0.55rem;
+    letter-spacing: 0.03em;
+}
+
+.prediction-amounts {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.prediction-amount-item {
+    text-align: center;
+    flex: 1;
+}
+
+.pred-label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.pred-value {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.pred-value.income-value {
+    color: var(--success-color);
+}
+
+.pred-value.expense-value {
+    color: var(--danger-color);
+}
+
+.pred-value.surplus {
+    color: var(--success-color);
+}
+
+.pred-value.deficit {
+    color: var(--danger-color);
+}
+
+.chart-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.prediction-details-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-top: 1.5rem;
+}
+
+.prediction-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.prediction-table thead {
+    background: var(--light-bg);
+}
+
+.prediction-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.prediction-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.prediction-table tbody tr:hover {
+    background: var(--light-bg);
+}
+
+.prediction-table .predicted-row {
+    background: rgba(33, 150, 243, 0.04);
+    font-style: italic;
+}
+
+.prediction-table .income-value {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.prediction-table .expense-value {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.prediction-table .surplus {
+    color: var(--success-color);
+    font-weight: 700;
+}
+
+.prediction-table .deficit {
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .income-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .prediction-amounts {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .prediction-amount-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+
+    .pred-label {
+        margin-bottom: 0;
+    }
+}
+
 @media (max-width: 768px) {
     .app-header {
         padding: 1.5rem 1rem;

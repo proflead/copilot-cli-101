@@ -5,7 +5,8 @@ class StorageManager {
             expenses: 'expense_tracker_expenses',
             categories: 'expense_tracker_categories',
             budgets: 'expense_tracker_budgets',
-            settings: 'expense_tracker_settings'
+            settings: 'expense_tracker_settings',
+            income: 'expense_tracker_income'
         };
         this.initializeDefaults();
     }
@@ -23,6 +24,9 @@ class StorageManager {
                 currency: 'USD',
                 currencySymbol: '$'
             });
+        }
+        if (!this.getItem(this.keys.income)) {
+            this.setItem(this.keys.income, []);
         }
     }
 
@@ -139,6 +143,30 @@ class StorageManager {
     getBudgetByCategory(category) {
         const budgets = this.getBudgets();
         return budgets.find(b => b.category === category) || null;
+    }
+
+    // Income CRUD
+    getIncomes() {
+        return this.getItem(this.keys.income) || [];
+    }
+
+    setIncome(income) {
+        const incomes = this.getIncomes();
+        const existingIndex = incomes.findIndex(
+            i => i.month === income.month && i.year === income.year
+        );
+        if (existingIndex !== -1) {
+            incomes[existingIndex] = { ...income, id: incomes[existingIndex].id };
+        } else {
+            income.id = this.generateId();
+            incomes.push(income);
+        }
+        return this.setItem(this.keys.income, incomes) ? income : null;
+    }
+
+    getIncomeByMonth(month, year) {
+        const incomes = this.getIncomes();
+        return incomes.find(i => i.month === month && i.year === year) || null;
     }
 
     // Settings
